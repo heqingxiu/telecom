@@ -1,0 +1,81 @@
+<configuration>  <!-- 根节点 -->
+    <!-- 设置一个变量  日志的存放位置-->
+    <property name="log_path" value="./logs/" /><!-- 生产环境使用绝对路径 -->
+    <!--
+    Appender: 设置日志信息的去向,常用的有以下几个
+    ch.qos.logback.core.ConsoleAppender (控制台)
+    ch.qos.logback.core.rolling.RollingFileAppender (文件大小到达指定尺寸的时候产生一个新文件)
+    ch.qos.logback.core.FileAppender (文件，不推荐使用)
+    -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoder 默认配置为PatternLayoutEncoder -->
+        <encoder>
+            <pattern>%d %5p [%t] %c.%M:%L - %m%n</pattern>
+        </encoder>
+    </appender>
+    <!--
+    Appender: 设置日志信息的去向,常用的有以下几个
+    ch.qos.logback.core.ConsoleAppender (控制台)
+    ch.qos.logback.core.rolling.RollingFileAppender (文件大小到达指定尺寸的时候产生一个新文件)
+    ch.qos.logback.core.FileAppender (文件，不推荐使用)
+    -->
+    <appender name="FILE"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 被写入的文件名，可以是相对目录，也可以是绝对目录，如果上级目录不存在会自动创建 -->
+        <file>${log_path}log.log</file>
+        <!--RollingFileAppender:-->
+        <!--滚动记录文件，先将日志记录到指定文件，当符合某个条件时，将日志记录到其他文件。-->
+        <!--<rollingPolicy>:当发生滚动时，决定RollingFileAppender 的行为，涉及文件移动和重命名。-->
+        <!--TimeBasedRollingPolicy： 最常用的滚动策略，它根据时间来制定滚动策略，既负责滚动也负责出发滚动-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>${log_path}log.log.%i</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>10</maxIndex>
+        </rollingPolicy>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <!--保存文件的大小，超过该大小自动创建新文件。旧文件压缩保存到daily目录下-->
+            <maxFileSize>10MB</maxFileSize>
+        </triggeringPolicy>
+        <!--<encoder>：对记录事件进行格式化。-->
+        <encoder>
+            <!--格式化输出：%d表示日期,后面跟时间格式，默认%data{yyyy-MM-dd}，%thread表示线程名， %msg：日志消息，%n是换行符-->
+            <pattern>%d %5p [%t] %c.%M:%L - %m%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="DruidFILE"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log_path}log-druid.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>${log_path}log-druid.log.%i</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>10</maxIndex>
+        </rollingPolicy>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>10MB</maxFileSize>
+        </triggeringPolicy>
+        <!-- 日志文件的格式 -->
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger Line:%-3L - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <!-- 此日志文件只记录error级别的 -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+    <!--root是默认的logger 这里设定输出级别是info-->
+    <root level="INFO">
+        <!--定义了两个appender，日志会通过往这两个appender里面写-->
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE" />
+    </root>
+
+    <logger name="com.alibaba.druid.filter.stat.StatFilter" level="ERROR"><!-- 设置打印级别 -->
+        <appender-ref ref="DruidFILE" />
+    </logger>
+
+</configuration>
+
